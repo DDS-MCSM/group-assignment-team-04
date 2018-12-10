@@ -4,7 +4,7 @@ Group Assignment base repository for the Data Driven Security subject of the [Cy
 
 ## Project Title
 
-Brief description of the project.
+Domain graph malware analisys.
 
 ### Requirements
 
@@ -14,11 +14,24 @@ Brief description of the project.
   
 ### Project Description
 
-Description of the project. 
+The project attempts to analyze the domain introduce by the user in order to create a graph with the sites and links. The purpose is to search malwary in the domain and related sites. 
+
+0. Configuration.R -> Package dependencies and common configuration.
+1. ReadCrawlingData.R -> Read domain using a crawler and exhibition of how is the data.
+2. CleaningCrawlingData.R -> Clean data N/A, wrong links, not interesting information.
+3. ExpositionCrawlingData.R -> Graph and summaries about collected data, e.g common external domains, ... 
+4. ReadMalwareData -> Analyze domain malware and exhibition of the malware analisys data.
+5. CleaningMalwareData.R -> Cleaning malware data.
+6. ExpositionMalwareData.R -> Show graphs and summary about malwara data.
+7. Graph.R -> Show domain data graph.
 
 ### Goals
+  
 
 ### Data acquisition
+
+  - www.malwaredomainlist.com
+  - www.openlinkprofiler.org
 
 ### Cleansing and transformations
 
