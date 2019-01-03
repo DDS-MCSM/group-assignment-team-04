@@ -12,4 +12,9 @@ Suggests:
     knitr,
     rmarkdown
 RoxygenNote: 6.1.1
+Imports:
+    dplyr,
+    urltools,
+    httr,
+    xml2
 VignetteBuilder: knitr
