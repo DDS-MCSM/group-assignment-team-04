@@ -3,69 +3,6 @@ library(urltools)
 library(xml2)
 library(httr)
 
-get_domain <- function(baseDomain, link)
-{
-  linkDomain <- urltools::url_parse(link)$domain;
-  ifelse (is.na(linkDomain),baseDomain,linkDomain)
-}
-
-get_scheme <- function(baseScheme, link)
-{
-  linkScheme<- urltools::url_parse(link)$scheme;
-  ifelse(is.na(linkScheme), baseScheme, linkScheme)
-}
-
-get_port <- function(basePort, link)
-{
-  linkPort<- urltools::url_parse(link)$port;
-  ifelse (is.na(linkPort),basePort,linkPort)
-}
-
-clean_and_transform_links_dataframe <- function(uri, level, linksDataFrame)
-{
-  #clean links and trasform to absolute uris
-  baseUri <- urltools::url_parse(uri)
-
-  linksDataFrame <- linksDataFrame %>%
-    filter(!is.na(link)) %>%
-    filter(!startsWith(link, "#")) %>%
-    mutate(level = level) %>%
-    mutate(
-      scheme = get_scheme(baseUri$scheme, link),
-      domain = get_domain(baseUri$domain, link),
-      port = get_port(baseUri$port, link),
-      path = urltools::url_parse(link)$path,
-      parameter = urltools::url_parse(link)$parameter,
-      fragment = urltools::url_parse(link)$fragment
-    ) %>%
-    mutate(
-      link = urltools::url_compose(data.frame(scheme = scheme,
-                                              domain= domain,
-                                              port = port,
-                                              path = path,
-                                              parameter = parameter,
-                                              fragment = fragment))
-    )
-
-  return(linksDataFrame)
-}
-
-get_links <- function(uri, page, level)
-{
-
-  names <- xml2::xml_text(xml2::xml_find_all(page, "//a"))
-  links <- xml2::xml_attr(xml2::xml_find_all(page, "//a"), "href")
-
-  if (length(links) == 0)
-  {
-    return(data.frame(name= character(), link= character()))
-  }
-
-  df <- data.frame(name = names, link = links, stringsAsFactors = FALSE)
-
-  clean_and_transform_links_dataframe(uri, level, df)
-}
-
 #' This function download the html
 #'
 #' @details The function download the html.
@@ -82,6 +19,70 @@ load_page <- function (uri)
   }, error = function(e) {xml2::read_html("<html></html>")})
 }
 
+#' Clean the links data frame removing NA values and adding more information to the data from the link
+#'
+#' The added information is the level, scheme, domain, path and parameters
+#' @param uri uri where the links was found
+#' @param level current analize level to be included on the data frame
+#' @param linksDataFrame Original data frames with the links
+#' @return The clean and extended data frame
+clean_and_transform_links_dataframe <- function(uri, level, linksDataFrame)
+{
+  #clean links and trasform to absolute uris
+  linksDataFrame <- linksDataFrame %>%
+    filter(!is.na(link)) %>%
+    filter(!startsWith(link, "#"))
+
+  parseLink <- urltools::url_parse(linksDataFrame$link)
+  baseUri <- urltools::url_parse(uri)
+
+  linksDataFrame <- linksDataFrame %>%
+    mutate(level = level) %>%
+    mutate(
+      scheme = ifelse(is.na(parseLink$scheme),baseUri$scheme, parseLink$scheme),
+      domain = ifelse(is.na(parseLink$domain),baseUri$domain, parseLink$domain),
+      port = ifelse(is.na(parseLink$port),baseUri$port, parseLink$port),
+      path = parseLink$path,
+      parameter = parseLink$parameter,
+      fragment = parseLink$fragment
+    ) %>%
+    mutate(
+      link = urltools::url_compose(data.frame(scheme = scheme,
+                                              domain= domain,
+                                              port = port,
+                                              path = path,
+                                              parameter = parameter,
+                                              fragment = fragment))
+    )
+
+  return(linksDataFrame)
+}
+
+#' Extract the links from the current page and creates a data frame from the links
+#'
+#' @param uri uri where the links was found
+#' @param page the xml parsed website
+#' @param level current analize level to be included on the data frame
+#' @return Data frame with the link information
+get_links <- function(uri, page, level)
+{
+  names <- xml2::xml_text(xml2::xml_find_all(page, "//a"))
+  links <- xml2::xml_attr(xml2::xml_find_all(page, "//a"), "href")
+
+  if (length(links) == 0)
+  {
+    return(data.frame(name = character(), link = character()))
+  }
+
+  df <- data.frame(name = names, link = links, stringsAsFactors = FALSE)
+  clean_and_transform_links_dataframe(uri, level, df)
+}
+
+#' Counts how many times a domain has been analize to be able to stop the internal search inside the same domain
+#'
+#' @param currentDomain the current domain analized
+#' @param currentDomainCount the number of times the domains has been found
+#' @return Data frame with the link information
 update_domain_count <- function(currentDomain, currentDomainCount)
 {
   if (is.null(currentDomainCount[[currentDomain]]))
@@ -90,23 +91,36 @@ update_domain_count <- function(currentDomain, currentDomainCount)
   }
   else
   {
-    currentDomainCount[[currentDomain]] <- currentDomainCount[[currentDomain]] +1
+    currentDomainCount[[currentDomain]] <- currentDomainCount[[currentDomain]] + 1
   }
 
   return(currentDomainCount)
 }
+
 empty_link_response <- function(domainCount)
 {
   return(list(links = list(), domainCount = domainCount))
 }
 
+#' Analize the uri  and all the links found on it
+#'
+#' @param uri the uri to be analized
+#' @param level current analisis level
+#' @param max_deepth The maximum level to stop the analisis
+#' @param max_internal_links The maximun number of links to be analized inside the same domain
+#' @param domainCount How many times a domain has been analized
+#' @return Data frame with the link information
 analize_link <- function(uri, level, max_deepth, max_internal_links, domainCount = list())
 {
-  if (level > max_deepth) { return(empty_link_response(domainCount)) }
+  if (level > max_deepth) {
+    return(empty_link_response(domainCount))
+  }
 
   currentDomain <- urltools::url_parse(uri)$domain
   domainCount <- update_domain_count(currentDomain, domainCount)
-  if (domainCount[[currentDomain]] > max_internal_links) { return(empty_link_response(domainCount)) }
+  if (domainCount[[currentDomain]] > max_internal_links) {
+    return(empty_link_response(domainCount))
+  }
 
   page <- load_page(uri)
   links <- get_links(uri, page, level)
@@ -116,8 +130,7 @@ analize_link <- function(uri, level, max_deepth, max_internal_links, domainCount
   for (link in linksToAnalyse) {
     next_links <- analize_link(link, level + 1, max_deepth, max_internal_links, domainCount)
     domainCount <- next_links$domainCount
-    if (length(next_links$links) > 0)
-    {
+    if (length(next_links$links) > 0) {
       links <- rbind(links, next_links$links)
     }
   }
