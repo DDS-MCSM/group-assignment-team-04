@@ -1,7 +1,7 @@
-library(dplyr)
 library(urltools)
 library(xml2)
 library(httr)
+library(dplyr)
 
 #' This function download the html
 #'
@@ -23,10 +23,9 @@ load_page <- function (uri)
 #'
 #' The added information is the level, scheme, domain, path and parameters
 #' @param uri uri where the links was found
-#' @param level current analize level to be included on the data frame
 #' @param linksDataFrame Original data frames with the links
 #' @return The clean and extended data frame
-clean_and_transform_links_dataframe <- function(uri, level, linksDataFrame)
+clean_and_transform_links_dataframe <- function(uri, linksDataFrame)
 {
   #clean links and trasform to absolute uris
   linksDataFrame <- linksDataFrame %>%
@@ -37,14 +36,15 @@ clean_and_transform_links_dataframe <- function(uri, level, linksDataFrame)
   baseUri <- urltools::url_parse(uri)
 
   linksDataFrame <- linksDataFrame %>%
-    mutate(level = level) %>%
     mutate(
       scheme = ifelse(is.na(parseLink$scheme),baseUri$scheme, parseLink$scheme),
       domain = ifelse(is.na(parseLink$domain),baseUri$domain, parseLink$domain),
       port = ifelse(is.na(parseLink$port),baseUri$port, parseLink$port),
       path = parseLink$path,
       parameter = parseLink$parameter,
-      fragment = parseLink$fragment
+      fragment = parseLink$fragment,
+      originDomain = baseUri$domain,
+      originLink = uri
     ) %>%
     mutate(
       link = urltools::url_compose(data.frame(scheme = scheme,
@@ -74,8 +74,8 @@ get_links <- function(uri, page, level)
     return(data.frame(name = character(), link = character()))
   }
 
-  df <- data.frame(name = names, link = links, stringsAsFactors = FALSE)
-  clean_and_transform_links_dataframe(uri, level, df)
+  df <- data.frame(name = names, link = links, level = level, stringsAsFactors = FALSE)
+  clean_and_transform_links_dataframe(uri, df)
 }
 
 #' Counts how many times a domain has been analize to be able to stop the internal search inside the same domain

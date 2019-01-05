@@ -4,14 +4,14 @@
 \alias{load_domain}
 \title{The function analize the given domain and domains accesible from them}
 \usage{
-load_domain(uri, max_internal_links = 10, max_deepth = 5)
+load_domain(uri, max_deepth = 5, max_internal_links = 10)
 }
 \arguments{
 \item{uri}{uri to analize}
 
-\item{max_internal_links}{maximun links to follown on the same domain, this is just to avoid the crawler take many time on domains with many links}
+\item{max_deepth}{maximun number of links levels to follow}
 
-\item{max_deepth}{maximun number to external domains to follow}
+\item{max_internal_links}{maximun links to follown on the same domain, this is just to avoid the crawler take many time on domains with many links}
 }
 \description{
 The function analize the given domain and domains accesible from them
