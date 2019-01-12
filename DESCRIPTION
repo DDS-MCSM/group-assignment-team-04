@@ -11,9 +11,10 @@ Suggests:
     testthat,
     knitr,
     rmarkdown
-RoxygenNote: 6.1.1
+RoxygenNote: 6.1.1,
+Depends:
+    dplyr
 Imports:
-    dplyr,
     httr,
     igraph,
     urltools,

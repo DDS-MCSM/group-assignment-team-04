@@ -1,8 +1,3 @@
-library(urltools)
-library(xml2)
-library(httr)
-library(dplyr)
-
 #' This function download the html
 #'
 #' @details The function download the html.
@@ -14,7 +9,7 @@ load_page <- function (uri)
 {
   #We ignore SSL errors, using httr config ssl
   tryCatch({
-    response <- httr::GET(uri, config = config(ssl_verifypeer = 0L))
+    response <- httr::GET(uri, config = httr::config(ssl_verifypeer = 0L))
     xml2::read_html(response$content)
   }, error = function(e) {xml2::read_html("<html></html>")})
 }
