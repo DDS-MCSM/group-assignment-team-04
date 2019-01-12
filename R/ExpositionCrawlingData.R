@@ -1,6 +1,3 @@
-library(dplyr)
-
-
 #' Build a graph from the dataframe links
 #'
 #' @param domainLinksDf Links of the domain analized

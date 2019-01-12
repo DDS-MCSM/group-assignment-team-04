@@ -1,5 +1,3 @@
-library(dplyr)
-
 #' Verify the domains analized and verifies if contains malware
 #'
 #' @return  dataframe including if contains malware information
