@@ -32,6 +32,8 @@ The project attempts to analyze the domain introduce by the user in order to cre
 
   - www.malwaredomainlist.com
 Malware domain list and host ips
+  - https://github.com/mitchellkrogza/Ultimate.Hosts.Blacklist
+Github with daily update of malware domains
 
 ### Cleansing and transformations
 
