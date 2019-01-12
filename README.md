@@ -31,7 +31,7 @@ The project attempts to analyze the domain introduce by the user in order to cre
 ### Data acquisition
 
   - www.malwaredomainlist.com
-  - www.openlinkprofiler.org
+Malware domain list and host ips
 
 ### Cleansing and transformations
 

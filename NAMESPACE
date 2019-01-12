@@ -2,4 +2,5 @@
 
 export(build_domain_graph)
 export(load_domain)
-export(sample_function)
+export(read_malware_data)
+export(update_malware_data)
