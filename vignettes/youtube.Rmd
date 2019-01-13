@@ -11,7 +11,7 @@ vignette: >
   %\VignetteEncoding{UTF-8}
 ---
 
-```{r setup, include = FALSE}
+```{r setup, include = FALSE, cache=TRUE}
 library(dplyr)
 knitr::opts_chunk$set(
   collapse = TRUE,
@@ -41,7 +41,7 @@ domain_info <- GroupAssignmentPackage::load_domain(uri, max_deepth, max_domain_l
 
 A continuación podemos ver un grafo con los dominios que más aparecen en los links. Hemos limitado el grafo a `r max_domains_to_show` dominios para poder visualizarlo correctamente. 
 
-```{r show_domain_graph, include = TRUE}
+```{r show_domain_graph, include = TRUE, fig.width=7, fig.height=4, fig.align = "center"}
 GroupAssignmentPackage::build_domain_graph(domain_info$links,max_domains_to_show)
 ```
 
@@ -82,7 +82,7 @@ analysis %>% filter(contains_malware == T) %>% select("link", "originDomain")
 ```
 
 De forma más visual, podemos ver el grafo de conexiones para alcanzar todos los dominios con malware:
-```{r show_malware_graph}
+```{r show_malware_graph, fig.width=7, fig.height=4, fig.align = "center"}
 if (contains_malware)
 {
   GroupAssignmentPackage::build_malware_graph(analysis)
