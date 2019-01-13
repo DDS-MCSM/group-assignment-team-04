@@ -24,13 +24,13 @@ max_deepth <- 3
 max_domains_to_show <- 10
 ```
 
-Vamos a realizar el análisis del dominio `r uri` para ver cuantos enlaces debería seguir un usuario de este dominio para alcanzar un dominio potencialmente peligroso con contenido de malware o spam.
+Vamos a realizar el análisis del dominio `r uri` para ver cuántos enlaces debería seguir un usuario de este dominio para alcanzar un dominio potencialmente peligroso con contenido de malware o spam.
 
 
 
 ## Obtener información del dominio
 
-La primero que necesitamos realizar es una exploración del dominio para obtener todos los posibles links que podemos alcanzar. Para ello vamos a descargar si seguir todos los links que hemos encontrado. Para evitar que el proceso no acabe nunca, hemos limitado la busqueda de links con los siguientes parametros:
+Lo primero que necesitamos realizar es una exploración del dominio para obtener todos los posibles links que podemos alcanzar. Para ello vamos a descargar y seguir todos los links que hemos encontrado. Para evitar que el proceso no acabe nunca, hemos limitado la busqueda de links con los siguientes parámetros:
 
 - Máximo número de links a seguir dentro de un mismo dominio `r max_domain_links`
 - Máximo número de links a seguir en profundidad `r max_deepth`
@@ -39,7 +39,7 @@ La primero que necesitamos realizar es una exploración del dominio para obtener
 domain_info <- GroupAssignmentPackage::load_domain(uri, max_deepth, max_domain_links)
 ```
 
-A continuación podemos ver un grafo de los dominios con mayor probabilidad de alcanzar, hemos limitado el grafo a `r max_domains_to_show` dominios para poder visualizarlo correctamente. 
+A continuación podemos ver un grafo con los dominios que más aparecen en los links. Hemos limitado el grafo a `r max_domains_to_show` dominios para poder visualizarlo correctamente. 
 
 ```{r show_domain_graph, include = TRUE}
 GroupAssignmentPackage::build_domain_graph(domain_info$links,max_domains_to_show)
@@ -62,12 +62,12 @@ Actualmente tenemos un listado con `r length(malware_domains_list)` dominios con
 
 ## Análisis
 
-Con la información de los links accesible desde el dominio analizado y con el listado de dominios con malware, ya podemos cruzar los datos y comprobar si hay links accesibles potencialmente peligrosos o no, y en caso afirmativo cuantos enlaces debería seguir el usuario.
+Con la información de los links accesibles desde el dominio analizado y con el listado de dominios con malware, ya podemos cruzar los datos y comprobar si hay links accesibles potencialmente peligrosos o no, y en caso afirmativo cuántos enlaces debería seguir el usuario.
 
 ```{r analysis, include = FALSE}
 analysis <-  GroupAssignmentPackage::analizy_domains(domain_info$links, malware_domains_list)
 contains_malware <- nrow(analysis %>% filter(contains_malware == T)) >= 1
-contains_malware_message <- "si"
+contains_malware_message <- "sí"
 if (!contains_malware)
 {
   contains_malware_message <- "no"
@@ -76,7 +76,7 @@ if (!contains_malware)
 
 En este caso podemos concluir que el dominio `r contains_malware_message` tiene malware accesible
 
-A continuación podemos ver el listado de malware y desde que dominio es accesible
+A continuación podemos ver el listado de malware y desde qué dominio es accesible
 ```{r show_malware_links}
 analysis %>% filter(contains_malware == T) %>% select("link", "originDomain")
 ```
@@ -91,4 +91,5 @@ if (contains_malware)
 ```
 
 ## Conclusiones
-Como podemos observar es muy fácil que un usuario acabe en un dominio potencialmente peligroso. Por otro lado, con diferentes análisis que hemos realizado podemos observar que las fuentes de información de malware/spam quizá se tendría que realizar un filtrado, con una fuente de dominios de confianza ya que producen muchos falsos positivos.
+En primer lugar, podemos observar que es muy fácil que un usuario acabe en un dominio potencialmente peligroso. 
+Para finalizar, después de realizar diferentes análisis, hemos visto que las fuentes de información de malware/spam tienen numerosos falsos positivos. Con lo que se deberia realizar un filtrado con dominios de confianza para evitar errores.
