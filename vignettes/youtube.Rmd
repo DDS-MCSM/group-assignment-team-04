@@ -1,0 +1,94 @@
+---
+title: "Youtube.com Análisis"
+author: 
+- Carlos Carrillo
+- Pablo Cid
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Vignette Title}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include = FALSE}
+library(dplyr)
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+
+uri <- "https://www.youtube.com"
+max_domain_links <- 5
+max_deepth <- 3
+max_domains_to_show <- 10
+```
+
+Vamos a realizar el análisis del dominio `r uri` para ver cuantos enlaces debería seguir un usuario de este dominio para alcanzar un dominio potencialmente peligroso con contenido de malware o spam.
+
+
+
+## Obtener información del dominio
+
+La primero que necesitamos realizar es una exploración del dominio para obtener todos los posibles links que podemos alcanzar. Para ello vamos a descargar si seguir todos los links que hemos encontrado. Para evitar que el proceso no acabe nunca, hemos limitado la busqueda de links con los siguientes parametros:
+
+- Máximo número de links a seguir dentro de un mismo dominio `r max_domain_links`
+- Máximo número de links a seguir en profundidad `r max_deepth`
+
+```{r load_domain, include = FALSE, cache=TRUE}
+domain_info <- GroupAssignmentPackage::load_domain(uri, max_deepth, max_domain_links)
+```
+
+A continuación podemos ver un grafo de los dominios con mayor probabilidad de alcanzar, hemos limitado el grafo a `r max_domains_to_show` dominios para poder visualizarlo correctamente. 
+
+```{r show_domain_graph, include = TRUE}
+GroupAssignmentPackage::build_domain_graph(domain_info$links,max_domains_to_show)
+```
+
+## Obtener información de dominios peligrosos
+
+Hemos utilizado varias fuentes de información para poder decidir si un dominio contiene malware o spam.
+
+- [Malware Domain List](https://www.malwaredomainlist.com/)
+- [Ultimate Hosts Blacklist](https://github.com/mitchellkrogza/Ultimate.Hosts.Blacklist)
+
+Ambas fuentes nos acaban proporcionando un listado de dominios poco fiables.
+
+```{r load_malware_domains, include = FALSE}
+malware_domains_list  <- GroupAssignmentPackage::get_malware_domain_list()
+```
+
+Actualmente tenemos un listado con `r length(malware_domains_list)` dominios con malware.
+
+## Análisis
+
+Con la información de los links accesible desde el dominio analizado y con el listado de dominios con malware, ya podemos cruzar los datos y comprobar si hay links accesibles potencialmente peligrosos o no, y en caso afirmativo cuantos enlaces debería seguir el usuario.
+
+```{r analysis, include = FALSE}
+analysis <-  GroupAssignmentPackage::analizy_domains(domain_info$links, malware_domains_list)
+contains_malware <- nrow(analysis %>% filter(contains_malware == T)) >= 1
+contains_malware_message <- "si"
+if (!contains_malware)
+{
+  contains_malware_message <- "no"
+}
+```
+
+En este caso podemos concluir que el dominio `r contains_malware_message` tiene malware accesible
+
+A continuación podemos ver el listado de malware y desde que dominio es accesible
+```{r show_malware_links}
+analysis %>% filter(contains_malware == T) %>% select("link", "originDomain")
+```
+
+De forma más visual, podemos ver el grafo de conexiones para alcanzar todos los dominios con malware:
+```{r show_malware_graph}
+if (contains_malware)
+{
+  GroupAssignmentPackage::build_malware_graph(analysis)
+}
+
+```
+
+## Conclusiones
+Como podemos observar es muy fácil que un usuario acabe en un dominio potencialmente peligroso. Por otro lado, con diferentes análisis que hemos realizado podemos observar que las fuentes de información de malware/spam quizá se tendría que realizar un filtrado, con una fuente de dominios de confianza ya que producen muchos falsos positivos.
